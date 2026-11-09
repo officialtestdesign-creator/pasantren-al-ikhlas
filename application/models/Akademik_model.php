@@ -67,36 +67,44 @@ class Akademik_model extends CI_Model {
         }
 
         // Seed default peraturan dayah if none
-        $this->db->where('id', 0)->delete('peraturan');
-        $this->db->query("ALTER TABLE `peraturan` MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT");
-        if ($this->db->count_all('peraturan') == 0) {
-            $default_peraturan = array(
-                array('id' => 1, 'bidang' => 'Pendidikan', 'urutan' => 1, 'isi' => 'Santri wajib mengikuti seluruh kegiatan pengajian dan halaqah kitab kuning tepat waktu.'),
-                array('id' => 2, 'bidang' => 'Pendidikan', 'urutan' => 2, 'isi' => 'Santri wajib memiliki dan menjaga kitab pegangan sesuai jenjang kelas masing-masing.'),
-                array('id' => 3, 'bidang' => 'Pendidikan', 'urutan' => 3, 'isi' => 'Santri wajib menggunakan bahasa resmi dayah (Arab/Melayu/Aceh yang beradab) di lingkungan pengajian.'),
-                array('id' => 4, 'bidang' => 'Jamaah', 'urutan' => 1, 'isi' => 'Seluruh santri wajib melaksanakan shalat lima waktu secara berjamaah di Musalla Utama.'),
-                array('id' => 5, 'bidang' => 'Jamaah', 'urutan' => 2, 'isi' => 'Wajib memakai pakaian putih bersih dan peci/kopiah saat shalat berjamaah.'),
-                array('id' => 6, 'bidang' => 'Humas', 'urutan' => 1, 'isi' => 'Wali santri hanya diperkenankan menjenguk pada hari libur (Jumat/Ahad) sesuai jadwal kunjung resmi.'),
-                array('id' => 7, 'bidang' => 'Humas', 'urutan' => 2, 'isi' => 'Santri dilarang membawa dan menggunakan telepon genggam (HP/smartphone) tanpa izin Pimpinan.'),
-                array('id' => 8, 'bidang' => 'Naker', 'urutan' => 1, 'isi' => 'Santri wajib menjaga kebersihan bilik/kamar asrama dan lingkungan komplek dayah (roan pagi Jumat).'),
-                array('id' => 9, 'bidang' => 'Naker', 'urutan' => 2, 'isi' => 'Santri wajib mematuhi jam malam dan dilarang keluar komplek dayah tanpa surat izin resmi teungku pengasuh.')
-            );
-            $this->db->insert_batch('peraturan', $default_peraturan);
+        $check_peraturan = $this->db->query("SELECT 1 FROM `peraturan` LIMIT 1");
+        if ($check_peraturan !== FALSE) {
+            $this->db->where('id', 0)->delete('peraturan');
+            $this->db->query("ALTER TABLE `peraturan` MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT");
+            $count_peraturan = $this->db->count_all('peraturan');
+            if ($count_peraturan === 0 || $count_peraturan === '0') {
+                $default_peraturan = array(
+                    array('id' => 1, 'bidang' => 'Pendidikan', 'urutan' => 1, 'isi' => 'Santri wajib mengikuti seluruh kegiatan pengajian dan halaqah kitab kuning tepat waktu.'),
+                    array('id' => 2, 'bidang' => 'Pendidikan', 'urutan' => 2, 'isi' => 'Santri wajib memiliki dan menjaga kitab pegangan sesuai jenjang kelas masing-masing.'),
+                    array('id' => 3, 'bidang' => 'Pendidikan', 'urutan' => 3, 'isi' => 'Santri wajib menggunakan bahasa resmi dayah (Arab/Melayu/Aceh yang beradab) di lingkungan pengajian.'),
+                    array('id' => 4, 'bidang' => 'Jamaah', 'urutan' => 1, 'isi' => 'Seluruh santri wajib melaksanakan shalat lima waktu secara berjamaah di Musalla Utama.'),
+                    array('id' => 5, 'bidang' => 'Jamaah', 'urutan' => 2, 'isi' => 'Wajib memakai pakaian putih bersih dan peci/kopiah saat shalat berjamaah.'),
+                    array('id' => 6, 'bidang' => 'Humas', 'urutan' => 1, 'isi' => 'Wali santri hanya diperkenankan menjenguk pada hari libur (Jumat/Ahad) sesuai jadwal kunjung resmi.'),
+                    array('id' => 7, 'bidang' => 'Humas', 'urutan' => 2, 'isi' => 'Santri dilarang membawa dan menggunakan telepon genggam (HP/smartphone) tanpa izin Pimpinan.'),
+                    array('id' => 8, 'bidang' => 'Naker', 'urutan' => 1, 'isi' => 'Santri wajib menjaga kebersihan bilik/kamar asrama dan lingkungan komplek dayah (roan pagi Jumat).'),
+                    array('id' => 9, 'bidang' => 'Naker', 'urutan' => 2, 'isi' => 'Santri wajib mematuhi jam malam dan dilarang keluar komplek dayah tanpa surat izin resmi teungku pengasuh.')
+                );
+                $this->db->insert_batch('peraturan', $default_peraturan);
+            }
         }
 
         // Seed default fasilitas if none
-        $this->db->where('id', 0)->delete('fasilitas');
-        $this->db->query("ALTER TABLE `fasilitas` MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT");
-        if ($this->db->count_all('fasilitas') == 0) {
-            $default_fasilitas = array(
-                array('id' => 1, 'nama' => 'Musalla Utama Dayah', 'deskripsi' => 'Tempat shalat berjamaah 5 waktu, pengajian akbar, wirid harian, dan kajian umum pimpinan dayah.', 'urutan' => 1),
-                array('id' => 2, 'nama' => 'Bilik / Asrama Santri', 'deskripsi' => 'Komplek pemondokan santri berlantai kayu yang sejuk, bersih, dan menanamkan ukhuwah islamiyah.', 'urutan' => 2),
-                array('id' => 3, 'nama' => 'Ruang Kelas Klasikal', 'deskripsi' => 'Ruang belajar pengkajian kitab kuning per jenjang dengan meja halaqah dan papan tulis.', 'urutan' => 3),
-                array('id' => 4, 'nama' => 'Perpustakaan & Maktabah Kitab', 'deskripsi' => 'Koleksi ratusan judul kitab turats, kamus bahasa Arab, tafsir, hadits, dan kitab fiqih mu\'tamad.', 'urutan' => 4),
-                array('id' => 5, 'nama' => 'Dapur & Ruang Makan', 'deskripsi' => 'Fasilitas memasak higienis penyedia konsumsi harian santri 3 kali sehari.', 'urutan' => 5),
-                array('id' => 6, 'nama' => 'Pos Kesehatan Santri (Poskestren)', 'deskripsi' => 'Pelayanan pertolongan pertama dan pemeriksaan kesehatan dasar santri.', 'urutan' => 6),
-            );
-            $this->db->insert_batch('fasilitas', $default_fasilitas);
+        $check_fasilitas = $this->db->query("SELECT 1 FROM `fasilitas` LIMIT 1");
+        if ($check_fasilitas !== FALSE) {
+            $this->db->where('id', 0)->delete('fasilitas');
+            $this->db->query("ALTER TABLE `fasilitas` MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT");
+            $count_fasilitas = $this->db->count_all('fasilitas');
+            if ($count_fasilitas === 0 || $count_fasilitas === '0') {
+                $default_fasilitas = array(
+                    array('id' => 1, 'nama' => 'Musalla Utama Dayah', 'deskripsi' => 'Tempat shalat berjamaah 5 waktu, pengajian akbar, wirid harian, dan kajian umum pimpinan dayah.', 'urutan' => 1),
+                    array('id' => 2, 'nama' => 'Bilik / Asrama Santri', 'deskripsi' => 'Komplek pemondokan santri berlantai kayu yang sejuk, bersih, dan menanamkan ukhuwah islamiyah.', 'urutan' => 2),
+                    array('id' => 3, 'nama' => 'Ruang Kelas Klasikal', 'deskripsi' => 'Ruang belajar pengkajian kitab kuning per jenjang dengan meja halaqah dan papan tulis.', 'urutan' => 3),
+                    array('id' => 4, 'nama' => 'Perpustakaan & Maktabah Kitab', 'deskripsi' => 'Koleksi ratusan judul kitab turats, kamus bahasa Arab, tafsir, hadits, dan kitab fiqih mu\'tamad.', 'urutan' => 4),
+                    array('id' => 5, 'nama' => 'Dapur & Ruang Makan', 'deskripsi' => 'Fasilitas memasak higienis penyedia konsumsi harian santri 3 kali sehari.', 'urutan' => 5),
+                    array('id' => 6, 'nama' => 'Pos Kesehatan Santri (Poskestren)', 'deskripsi' => 'Pelayanan pertolongan pertama dan pemeriksaan kesehatan dasar santri.', 'urutan' => 6),
+                );
+                $this->db->insert_batch('fasilitas', $default_fasilitas);
+            }
         }
 
         $this->db->db_debug = $prev_debug;

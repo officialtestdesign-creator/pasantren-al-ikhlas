@@ -47,17 +47,22 @@ class MY_Controller extends CI_Controller {
         $check_users = $this->db->query("SELECT 1 FROM `users` LIMIT 1");
         if ($check_users === FALSE) {
             $sql_file = FCPATH . 'db/db_dayah_alikhlas.sql';
-            if (file_exists($sql_file) && isset($this->db->conn_id) && $this->db->conn_id instanceof mysqli) {
-                $sql = file_get_contents($sql_file);
-                $this->db->conn_id->query("SET FOREIGN_KEY_CHECKS = 0");
-                if ($this->db->conn_id->multi_query($sql)) {
-                    do {
-                        if ($result = $this->db->conn_id->store_result()) {
-                            $result->free();
-                        }
-                    } while ($this->db->conn_id->more_results() && $this->db->conn_id->next_result());
+            if (file_exists($sql_file)) {
+                $lines = file($sql_file);
+                $statement = '';
+                $this->db->query("SET FOREIGN_KEY_CHECKS = 0");
+                foreach ($lines as $line) {
+                    $trimmed = trim($line);
+                    if ($trimmed === '' || strpos($trimmed, '--') === 0 || strpos($trimmed, '/*') === 0 || strpos($trimmed, '#') === 0) {
+                        continue;
+                    }
+                    $statement .= ' ' . $line;
+                    if (substr($trimmed, -1) === ';') {
+                        $this->db->query($statement);
+                        $statement = '';
+                    }
                 }
-                $this->db->conn_id->query("SET FOREIGN_KEY_CHECKS = 1");
+                $this->db->query("SET FOREIGN_KEY_CHECKS = 1");
             }
         }
 
