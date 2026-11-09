@@ -73,12 +73,30 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 $active_group = 'default';
 $query_builder = TRUE;
 
+// Detect Railway or Cloud Environment Variables
+$db_url = getenv('MYSQL_URL') ?: getenv('DATABASE_URL');
+if ($db_url) {
+	$parsed = parse_url($db_url);
+	$db_host = isset($parsed['host']) ? $parsed['host'] : 'localhost';
+	$db_port = isset($parsed['port']) ? (int)$parsed['port'] : 3306;
+	$db_user = isset($parsed['user']) ? $parsed['user'] : 'root';
+	$db_pass = isset($parsed['pass']) ? $parsed['pass'] : '';
+	$db_name = isset($parsed['path']) ? ltrim($parsed['path'], '/') : 'db_dayah_alikhlas';
+} else {
+	$db_host = getenv('MYSQLHOST') ?: (getenv('DB_HOST') ?: 'localhost');
+	$db_port = (int)(getenv('MYSQLPORT') ?: (getenv('DB_PORT') ?: 3306));
+	$db_user = getenv('MYSQLUSER') ?: (getenv('DB_USER') ?: 'root');
+	$db_pass = getenv('MYSQLPASSWORD') !== false ? getenv('MYSQLPASSWORD') : (getenv('DB_PASS') !== false ? getenv('DB_PASS') : '');
+	$db_name = getenv('MYSQLDATABASE') ?: (getenv('DB_NAME') ?: 'db_dayah_alikhlas');
+}
+
 $db['default'] = array(
 	'dsn'	=> '',
-	'hostname' => 'localhost',
-	'username' => 'root',
-	'password' => '',
-	'database' => 'db_dayah_alikhlas',
+	'hostname' => $db_host,
+	'port'     => $db_port,
+	'username' => $db_user,
+	'password' => $db_pass,
+	'database' => $db_name,
 	'dbdriver' => 'mysqli',
 	'dbprefix' => '',
 	'pconnect' => FALSE,

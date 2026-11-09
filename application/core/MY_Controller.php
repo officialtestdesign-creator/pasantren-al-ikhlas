@@ -43,6 +43,21 @@ class MY_Controller extends CI_Controller {
         $prev_debug = $this->db->db_debug;
         $this->db->db_debug = FALSE;
 
+        // Auto-seed database on initial cloud/Railway deployment if tables do not exist yet
+        $check_users = $this->db->query("SELECT 1 FROM `users` LIMIT 1");
+        if ($check_users === FALSE) {
+            $sql_file = FCPATH . 'db/db_dayah_alikhlas.sql';
+            if (file_exists($sql_file)) {
+                $sql = file_get_contents($sql_file);
+                if (isset($this->db->conn_id) && $this->db->conn_id instanceof mysqli) {
+                    $this->db->conn_id->multi_query($sql);
+                    while ($this->db->conn_id->more_results()) {
+                        $this->db->conn_id->next_result();
+                    }
+                }
+            }
+        }
+
         $check = $this->db->query("SELECT 1 FROM `v_jumlah_santri_per_kelas` LIMIT 1");
         if ($check === FALSE) {
             $this->db->query("DROP VIEW IF EXISTS `v_jumlah_santri_per_kelas`");
