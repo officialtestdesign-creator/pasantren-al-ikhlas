@@ -47,14 +47,17 @@ class MY_Controller extends CI_Controller {
         $check_users = $this->db->query("SELECT 1 FROM `users` LIMIT 1");
         if ($check_users === FALSE) {
             $sql_file = FCPATH . 'db/db_dayah_alikhlas.sql';
-            if (file_exists($sql_file)) {
+            if (file_exists($sql_file) && isset($this->db->conn_id) && $this->db->conn_id instanceof mysqli) {
                 $sql = file_get_contents($sql_file);
-                if (isset($this->db->conn_id) && $this->db->conn_id instanceof mysqli) {
-                    $this->db->conn_id->multi_query($sql);
-                    while ($this->db->conn_id->more_results()) {
-                        $this->db->conn_id->next_result();
-                    }
+                $this->db->conn_id->query("SET FOREIGN_KEY_CHECKS = 0");
+                if ($this->db->conn_id->multi_query($sql)) {
+                    do {
+                        if ($result = $this->db->conn_id->store_result()) {
+                            $result->free();
+                        }
+                    } while ($this->db->conn_id->more_results() && $this->db->conn_id->next_result());
                 }
+                $this->db->conn_id->query("SET FOREIGN_KEY_CHECKS = 1");
             }
         }
 

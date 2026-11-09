@@ -16,33 +16,40 @@ class Akademik_model extends CI_Model {
         $this->db->db_debug = FALSE;
 
         // Clean up any stray row with id = 0 if auto_increment was previously missing
-        $this->db->where('id', 0)->delete('kelas');
-        $this->db->query("ALTER TABLE `kelas` MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT");
+        $check_kelas = $this->db->query("SELECT 1 FROM `kelas` LIMIT 1");
+        if ($check_kelas !== FALSE) {
+            $this->db->where('id', 0)->delete('kelas');
+            $this->db->query("ALTER TABLE `kelas` MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT");
 
-        // Seed default classes if none
-        if ($this->db->count_all('kelas') == 0) {
-            $default_ta = $this->db->get_where('tahun_ajaran', array('aktif' => 1))->row();
-            $ta_id = $default_ta ? $default_ta->id : 1;
+            // Seed default classes if none
+            $count = $this->db->count_all('kelas');
+            if ($count === 0 || $count === '0') {
+                $default_ta = $this->db->get_where('tahun_ajaran', array('aktif' => 1))->row();
+                $ta_id = $default_ta ? $default_ta->id : 1;
 
-            $default_kelas = array(
-                array('id' => 1, 'jenjang_id' => 1, 'nama_kelas' => 'Tajhizi A', 'tahun_ajaran_id' => $ta_id),
-                array('id' => 2, 'jenjang_id' => 1, 'nama_kelas' => 'Tajhizi B', 'tahun_ajaran_id' => $ta_id),
-                array('id' => 3, 'jenjang_id' => 2, 'nama_kelas' => 'Ula 1 A', 'tahun_ajaran_id' => $ta_id),
-                array('id' => 4, 'jenjang_id' => 2, 'nama_kelas' => 'Ula 1 B', 'tahun_ajaran_id' => $ta_id),
-                array('id' => 5, 'jenjang_id' => 2, 'nama_kelas' => 'Ula 2', 'tahun_ajaran_id' => $ta_id),
-                array('id' => 6, 'jenjang_id' => 3, 'nama_kelas' => 'Wustha 1', 'tahun_ajaran_id' => $ta_id),
-                array('id' => 7, 'jenjang_id' => 3, 'nama_kelas' => 'Wustha 2', 'tahun_ajaran_id' => $ta_id),
-                array('id' => 8, 'jenjang_id' => 4, 'nama_kelas' => 'Ulya 1', 'tahun_ajaran_id' => $ta_id),
-                array('id' => 9, 'jenjang_id' => 4, 'nama_kelas' => 'Ulya 2', 'tahun_ajaran_id' => $ta_id),
-                array('id' => 10, 'jenjang_id' => 5, 'nama_kelas' => 'Ma\'had Aly', 'tahun_ajaran_id' => $ta_id),
-            );
-            $this->db->insert_batch('kelas', $default_kelas);
+                $default_kelas = array(
+                    array('id' => 1, 'jenjang_id' => 1, 'nama_kelas' => 'Tajhizi A', 'tahun_ajaran_id' => $ta_id),
+                    array('id' => 2, 'jenjang_id' => 1, 'nama_kelas' => 'Tajhizi B', 'tahun_ajaran_id' => $ta_id),
+                    array('id' => 3, 'jenjang_id' => 2, 'nama_kelas' => 'Ula 1 A', 'tahun_ajaran_id' => $ta_id),
+                    array('id' => 4, 'jenjang_id' => 2, 'nama_kelas' => 'Ula 1 B', 'tahun_ajaran_id' => $ta_id),
+                    array('id' => 5, 'jenjang_id' => 2, 'nama_kelas' => 'Ula 2', 'tahun_ajaran_id' => $ta_id),
+                    array('id' => 6, 'jenjang_id' => 3, 'nama_kelas' => 'Wustha 1', 'tahun_ajaran_id' => $ta_id),
+                    array('id' => 7, 'jenjang_id' => 3, 'nama_kelas' => 'Wustha 2', 'tahun_ajaran_id' => $ta_id),
+                    array('id' => 8, 'jenjang_id' => 4, 'nama_kelas' => 'Ulya 1', 'tahun_ajaran_id' => $ta_id),
+                    array('id' => 9, 'jenjang_id' => 4, 'nama_kelas' => 'Ulya 2', 'tahun_ajaran_id' => $ta_id),
+                    array('id' => 10, 'jenjang_id' => 5, 'nama_kelas' => 'Ma\'had Aly', 'tahun_ajaran_id' => $ta_id),
+                );
+                $this->db->insert_batch('kelas', $default_kelas);
+            }
         }
 
         // Seed default daily schedule if none
-        $this->db->where('id', 0)->delete('jadwal_kegiatan');
-        $this->db->query("ALTER TABLE `jadwal_kegiatan` MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT");
-        if ($this->db->count_all('jadwal_kegiatan') == 0) {
+        $check_jadwal = $this->db->query("SELECT 1 FROM `jadwal_kegiatan` LIMIT 1");
+        if ($check_jadwal !== FALSE) {
+            $this->db->where('id', 0)->delete('jadwal_kegiatan');
+            $this->db->query("ALTER TABLE `jadwal_kegiatan` MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT");
+            $count_jadwal = $this->db->count_all('jadwal_kegiatan');
+            if ($count_jadwal === 0 || $count_jadwal === '0') {
             $default_jadwal = array(
                 array('id' => 1, 'jam_mulai' => '04:30:00', 'jam_selesai' => '05:30:00', 'kegiatan' => 'Shalat Subuh Berjamaah & Wirid', 'keterangan' => 'Musalla Utama Dayah', 'urutan' => 1),
                 array('id' => 2, 'jam_mulai' => '05:30:00', 'jam_selesai' => '06:30:00', 'kegiatan' => 'Halaqah Tahfizh & Pengajian Pagi', 'keterangan' => 'Pengajian kitab kuning dasar bersama Teungku', 'urutan' => 2),
@@ -56,6 +63,7 @@ class Akademik_model extends CI_Model {
                 array('id' => 10, 'jam_mulai' => '22:30:00', 'jam_selesai' => '04:00:00', 'kegiatan' => 'Istirahat Tidur Malam', 'keterangan' => 'Lampu asrama dipadamkan', 'urutan' => 10),
             );
             $this->db->insert_batch('jadwal_kegiatan', $default_jadwal);
+            }
         }
 
         // Seed default peraturan dayah if none
