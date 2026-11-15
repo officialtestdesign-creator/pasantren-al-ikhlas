@@ -30,18 +30,29 @@ $is_https = (
     (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ||
     (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') ||
     (isset($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] === 'on') ||
-    getenv('RAILWAY_ENVIRONMENT') !== false
+    getenv('RAILWAY_ENVIRONMENT') !== false ||
+    (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443)
 );
 $protocol = $is_https ? "https://" : "http://";
-if (getenv('RAILWAY_PUBLIC_DOMAIN')) {
+
+$forwarded_host = isset($_SERVER['HTTP_X_FORWARDED_HOST']) ? trim(explode(',', $_SERVER['HTTP_X_FORWARDED_HOST'])[0]) : '';
+$http_host = isset($_SERVER['HTTP_HOST']) ? trim($_SERVER['HTTP_HOST']) : '';
+$is_private_ip = preg_match('/^(?:10\.|172\.(?:1[6-9]|2[0-9]|3[01])\.|192\.168\.)/', $http_host);
+
+if (!empty($forwarded_host) && !preg_match('/^(?:10\.|172\.(?:1[6-9]|2[0-9]|3[01])\.|192\.168\.)/', $forwarded_host)) {
+    $host = $forwarded_host;
+} elseif (getenv('RAILWAY_PUBLIC_DOMAIN')) {
     $host = getenv('RAILWAY_PUBLIC_DOMAIN');
-} elseif (isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
-    $host = $_SERVER['HTTP_X_FORWARDED_HOST'];
-} elseif (isset($_SERVER['HTTP_HOST'])) {
-    $host = $_SERVER['HTTP_HOST'];
+} elseif (getenv('RAILWAY_STATIC_URL')) {
+    $host = getenv('RAILWAY_STATIC_URL');
+} elseif (!empty($http_host) && !$is_private_ip) {
+    $host = $http_host;
+} elseif (getenv('RAILWAY_ENVIRONMENT') !== false) {
+    $host = 'pasantren-web-production.up.railway.app';
 } else {
-    $host = 'localhost';
+    $host = !empty($http_host) ? $http_host : 'localhost';
 }
+
 $script_dir = isset($_SERVER['SCRIPT_NAME']) ? str_replace(basename($_SERVER['SCRIPT_NAME']), '', $_SERVER['SCRIPT_NAME']) : '/';
 $config['base_url'] = rtrim($protocol . $host . $script_dir, '/') . '/';
 
