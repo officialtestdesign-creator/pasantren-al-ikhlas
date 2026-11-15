@@ -29,12 +29,21 @@ if (isset($_SERVER['REQUEST_URI'])) {
 $is_https = (
     (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ||
     (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') ||
-    (isset($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] === 'on')
+    (isset($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] === 'on') ||
+    getenv('RAILWAY_ENVIRONMENT') !== false
 );
 $protocol = $is_https ? "https://" : "http://";
-$host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'localhost';
+if (getenv('RAILWAY_PUBLIC_DOMAIN')) {
+    $host = getenv('RAILWAY_PUBLIC_DOMAIN');
+} elseif (isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
+    $host = $_SERVER['HTTP_X_FORWARDED_HOST'];
+} elseif (isset($_SERVER['HTTP_HOST'])) {
+    $host = $_SERVER['HTTP_HOST'];
+} else {
+    $host = 'localhost';
+}
 $script_dir = isset($_SERVER['SCRIPT_NAME']) ? str_replace(basename($_SERVER['SCRIPT_NAME']), '', $_SERVER['SCRIPT_NAME']) : '/';
-$config['base_url'] = $protocol . $host . $script_dir;
+$config['base_url'] = rtrim($protocol . $host . $script_dir, '/') . '/';
 
 /*
 |--------------------------------------------------------------------------
