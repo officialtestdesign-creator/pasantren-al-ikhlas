@@ -26,12 +26,18 @@ if (isset($_SERVER['REQUEST_URI'])) {
     $_SERVER['REQUEST_URI'] = rawurldecode($_SERVER['REQUEST_URI']);
 }
 
+$is_on_railway = (
+    isset($_SERVER['HTTP_X_RAILWAY_REQUEST_ID']) ||
+    isset($_SERVER['HTTP_X_RAILWAY_EDGE']) ||
+    getenv('RAILWAY_ENVIRONMENT') !== false ||
+    (isset($_SERVER['SERVER_ADDR']) && preg_match('/^(?:10\.|172\.(?:1[6-9]|2[0-9]|3[01])\.|192\.168\.)/', $_SERVER['SERVER_ADDR']))
+);
+
 $is_https = (
     (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ||
     (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') ||
     (isset($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] === 'on') ||
-    getenv('RAILWAY_ENVIRONMENT') !== false ||
-    (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443)
+    $is_on_railway
 );
 $protocol = $is_https ? "https://" : "http://";
 
@@ -41,14 +47,10 @@ $is_private_ip = preg_match('/^(?:10\.|172\.(?:1[6-9]|2[0-9]|3[01])\.|192\.168\.
 
 if (!empty($forwarded_host) && !preg_match('/^(?:10\.|172\.(?:1[6-9]|2[0-9]|3[01])\.|192\.168\.)/', $forwarded_host)) {
     $host = $forwarded_host;
-} elseif (getenv('RAILWAY_PUBLIC_DOMAIN')) {
-    $host = getenv('RAILWAY_PUBLIC_DOMAIN');
-} elseif (getenv('RAILWAY_STATIC_URL')) {
-    $host = getenv('RAILWAY_STATIC_URL');
+} elseif ($is_on_railway) {
+    $host = 'pasantren-web-production.up.railway.app';
 } elseif (!empty($http_host) && !$is_private_ip) {
     $host = $http_host;
-} elseif (getenv('RAILWAY_ENVIRONMENT') !== false) {
-    $host = 'pasantren-web-production.up.railway.app';
 } else {
     $host = !empty($http_host) ? $http_host : 'localhost';
 }
