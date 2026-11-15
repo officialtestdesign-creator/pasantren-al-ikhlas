@@ -19,6 +19,12 @@ class Pembayaran_model extends CI_Model {
         $prev_debug = $this->db->db_debug;
         $this->db->db_debug = FALSE;
 
+        $check = $this->db->query("SELECT 1 FROM `{$this->table}` LIMIT 1");
+        if ($check === FALSE) {
+            $this->db->db_debug = $prev_debug;
+            return;
+        }
+
         // Ensure AUTO_INCREMENT is enabled on primary key id
         $this->db->query("ALTER TABLE `{$this->table}` MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT");
 
@@ -171,6 +177,15 @@ class Pembayaran_model extends CI_Model {
     }
 
     public function ensure_default_jenis() {
+        $prev_debug = $this->db->db_debug;
+        $this->db->db_debug = FALSE;
+
+        $check = $this->db->query("SELECT 1 FROM `jenis_pembayaran` LIMIT 1");
+        if ($check === FALSE) {
+            $this->db->db_debug = $prev_debug;
+            return;
+        }
+
         // Ensure default nominal is set if 0
         $spp = $this->db->get_where('jenis_pembayaran', array('id' => 1))->row();
         if ($spp && $spp->nominal == 0) {

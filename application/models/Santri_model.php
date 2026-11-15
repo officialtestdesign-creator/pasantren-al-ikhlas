@@ -17,6 +17,12 @@ class Santri_model extends CI_Model {
         $prev_debug = $this->db->db_debug;
         $this->db->db_debug = FALSE;
 
+        $check = $this->db->query("SELECT 1 FROM `{$this->table}` LIMIT 1");
+        if ($check === FALSE) {
+            $this->db->db_debug = $prev_debug;
+            return;
+        }
+
         // Clean up stray row with id = 0 if any
         $this->db->where('id', 0)->delete($this->table);
 

@@ -17,6 +17,12 @@ class Fasilitas_model extends CI_Model {
         $prev_debug = $this->db->db_debug;
         $this->db->db_debug = FALSE;
 
+        $check = $this->db->query("SELECT 1 FROM `{$this->table}` LIMIT 1");
+        if ($check === FALSE) {
+            $this->db->db_debug = $prev_debug;
+            return;
+        }
+
         // Bersihkan baris id = 0 jika ada
         $this->db->where('id', 0)->delete($this->table);
 

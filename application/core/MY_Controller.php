@@ -43,9 +43,11 @@ class MY_Controller extends CI_Controller {
         $prev_debug = $this->db->db_debug;
         $this->db->db_debug = FALSE;
 
-        // Auto-seed database on initial cloud/Railway deployment if tables do not exist yet
+        // Auto-seed database on initial cloud/Railway deployment if core tables do not exist yet
+        $check_guru = $this->db->query("SELECT 1 FROM `guru` LIMIT 1");
+        $check_santri = $this->db->query("SELECT 1 FROM `santri` LIMIT 1");
         $check_users = $this->db->query("SELECT 1 FROM `users` LIMIT 1");
-        if ($check_users === FALSE) {
+        if ($check_guru === FALSE || $check_santri === FALSE || $check_users === FALSE) {
             $sql_file = FCPATH . 'db/db_dayah_alikhlas.sql';
             if (file_exists($sql_file)) {
                 $lines = file($sql_file);
@@ -99,8 +101,11 @@ class MY_Controller extends CI_Controller {
                 'tahun_ajaran', 'users'
             );
             foreach ($tables as $t) {
-                $this->db->where('id', 0)->delete($t);
-                $this->db->query("ALTER TABLE `{$t}` MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT");
+                $check_t = $this->db->query("SELECT 1 FROM `{$t}` LIMIT 1");
+                if ($check_t !== FALSE) {
+                    $this->db->where('id', 0)->delete($t);
+                    $this->db->query("ALTER TABLE `{$t}` MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT");
+                }
             }
         }
 
