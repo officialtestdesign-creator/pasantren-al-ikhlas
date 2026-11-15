@@ -26,35 +26,33 @@ if (isset($_SERVER['REQUEST_URI'])) {
     $_SERVER['REQUEST_URI'] = rawurldecode($_SERVER['REQUEST_URI']);
 }
 
-$is_on_railway = (
-    isset($_SERVER['HTTP_X_RAILWAY_REQUEST_ID']) ||
-    isset($_SERVER['HTTP_X_RAILWAY_EDGE']) ||
-    getenv('RAILWAY_ENVIRONMENT') !== false ||
-    (isset($_SERVER['SERVER_ADDR']) && preg_match('/^(?:10\.|172\.(?:1[6-9]|2[0-9]|3[01])\.|192\.168\.)/', $_SERVER['SERVER_ADDR']))
-);
-
 $is_https = (
     (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ||
     (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') ||
     (isset($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] === 'on') ||
-    $is_on_railway
+    (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443) ||
+    !empty($_SERVER['HTTP_X_RAILWAY_REQUEST_ID'])
 );
-$protocol = $is_https ? "https://" : "http://";
 
 $forwarded_host = isset($_SERVER['HTTP_X_FORWARDED_HOST']) ? trim(explode(',', $_SERVER['HTTP_X_FORWARDED_HOST'])[0]) : '';
 $http_host = isset($_SERVER['HTTP_HOST']) ? trim($_SERVER['HTTP_HOST']) : '';
-$is_private_ip = preg_match('/^(?:10\.|172\.(?:1[6-9]|2[0-9]|3[01])\.|192\.168\.)/', $http_host);
+$is_private = function($h) {
+    return (bool) preg_match('/^(?:10\.|172\.(?:1[6-9]|2[0-9]|3[01])\.|192\.168\.)/', $h);
+};
 
-if (!empty($forwarded_host) && !preg_match('/^(?:10\.|172\.(?:1[6-9]|2[0-9]|3[01])\.|192\.168\.)/', $forwarded_host)) {
+if (!empty($forwarded_host) && !$is_private($forwarded_host)) {
     $host = $forwarded_host;
-} elseif ($is_on_railway) {
-    $host = 'pasantren-web-production.up.railway.app';
-} elseif (!empty($http_host) && !$is_private_ip) {
+} elseif (!empty($http_host) && !$is_private($http_host) && $http_host !== 'localhost' && $http_host !== '127.0.0.1') {
+    $host = $http_host;
+} elseif ($http_host === 'localhost' || $http_host === '127.0.0.1' || strpos($http_host, 'localhost:') === 0) {
     $host = $http_host;
 } else {
-    $host = !empty($http_host) ? $http_host : 'localhost';
+    // Railway or cloud container behind reverse-proxy
+    $host = 'pasantren-web-production.up.railway.app';
+    $is_https = true;
 }
 
+$protocol = $is_https ? "https://" : "http://";
 $script_dir = isset($_SERVER['SCRIPT_NAME']) ? str_replace(basename($_SERVER['SCRIPT_NAME']), '', $_SERVER['SCRIPT_NAME']) : '/';
 $config['base_url'] = rtrim($protocol . $host . $script_dir, '/') . '/';
 
